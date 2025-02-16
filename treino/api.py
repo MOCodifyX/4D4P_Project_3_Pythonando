@@ -4,6 +4,7 @@ from .models import Alunos, AulasConcluidas
 from ninja.errors import HttpError
 from typing import List
 from .graduacao import *
+from datetime import date
 
 treino_router = Router()
 
@@ -67,3 +68,18 @@ def aula_realizada(request, aula_realizada: AulaRealizadaSchema):
         ac.save()
 
     return 200, f"Aula marcada como realizada para o aluno {aluno.nome}"
+
+@treino_router.put('/alunos/{aluno_id}', response=AlunosSchema)
+def update_aluno(request, aluno_id: int, aluno_data: AlunosSchema):
+    aluno = Alunos.objects.get(id=aluno_id)
+    idade = date.today() - aluno.data_nascimento
+
+    if int(idade.days/365) < 18 and aluno_data.dict ['faixa'] in ('A', 'R', 'M', 'P'):
+        raise HttpError(400, 'Menores de 18 não podem receber essa faixa')
+
+    for attr, value in aluno_data.dict() . items():
+        if value:
+            setattr(aluno, attr, value)
+    aluno.save()
+
+    return aluno
