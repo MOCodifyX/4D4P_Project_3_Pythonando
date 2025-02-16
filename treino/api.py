@@ -1,5 +1,5 @@
 from ninja import Router
-from .schemas import AlunosSchema, ProgressoAlunoSchema
+from .schemas import AlunosSchema, ProgressoAlunoSchema, AulaRealizadaSchema
 from .models import Alunos, AulasConcluidas
 from ninja.errors import HttpError
 from typing import List
@@ -47,3 +47,23 @@ def progresso_aluno(request, email_aluno: str):
         "total_aulas": total_aulas_concluidas_faixa,
         "aulas_necessarias_para_proxima_faixa": aulas_faltantes
     }
+
+@treino_router.post('/aula_realizada/', response={200: str})
+def aula_realizada(request, aula_realizada: AulaRealizadaSchema):
+    qtd = aula_realizada.dict()['qtd']
+    email_aluno = aula_realizada.dict()['email_aluno']
+
+    if qtd <= 0:
+        raise HttpError(400, "Quantidade de aulas deve ser maior que zero")
+
+    aluno = Alunos.objects.get(email=email_aluno)
+
+    for _ in range(0, qtd):
+        ac = AulasConcluidas(
+            aluno=aluno,
+            faixa_atual=aluno.faixa
+        )
+
+        ac.save()
+
+    return 200, f"Aula marcada como realizada para o aluno {aluno.nome}"

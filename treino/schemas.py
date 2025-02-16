@@ -1,6 +1,6 @@
 from ninja import ModelSchema, Schema
 from .models import Alunos
-
+from typing import Optional
 class AlunosSchema(ModelSchema):
     class Meta:
         model = Alunos
@@ -12,3 +12,7 @@ class ProgressoAlunoSchema(Schema):
     faixa: str
     total_aulas: int
     aulas_necessarias_para_proxima_faixa: int
+
+class AulaRealizadaSchema(Schema):
+    qtd: Optional[int] = 1
+    email_aluno: str
